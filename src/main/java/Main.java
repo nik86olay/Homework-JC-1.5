@@ -11,7 +11,6 @@ import org.json.simple.parser.JSONParser;
 import org.json.simple.parser.ParseException;
 import org.w3c.dom.*;
 import org.xml.sax.SAXException;
-
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
@@ -22,11 +21,13 @@ import java.util.List;
 
 public class Main {
 
+    static final String[] columnMapping = {"id", "firstName", "lastName", "country", "age"};
+    static final String fileName = "data.csv";
+
     public static void main(String[] args) throws ParserConfigurationException, IOException, SAXException {
 
         // Задача №1
-        String[] columnMapping = {"id", "firstName", "lastName", "country", "age"};
-        String fileName = "data.csv";
+
         createDataCsv(fileName);
         List<Employee> list = parseCSV(columnMapping, fileName);
         String json = listToJson(list);
@@ -104,7 +105,7 @@ public class Main {
     }
 
     // Создание файла CSV
-    private static void createDataCsv(String fileName) {
+    protected static void createDataCsv(String fileName) {
         String[][] arrayString = {
                 "1,John,Smith,USA,25".split(","),
                 "2,Ivan,Petrov,RU,23".split(",")
@@ -119,7 +120,7 @@ public class Main {
     }
 
     // считывание информации из CSV в объекты класса Employee
-    private static List<Employee> parseCSV(String[] columnMapping, String fileName) {
+    protected static List<Employee> parseCSV(String[] columnMapping, String fileName) {
         List<Employee> list = null;
         try (CSVReader reader = new CSVReader(new FileReader(fileName))) {
             ColumnPositionMappingStrategy<Employee> strategy = new ColumnPositionMappingStrategy<>();
@@ -136,7 +137,7 @@ public class Main {
     }
 
     // Преобразование из объекта в строку формата Gson
-    private static String listToJson(List<Employee> list) {
+    protected static String listToJson(List<Employee> list) {
         Gson gson = new GsonBuilder().create();
         Type listType = new TypeToken<List<Employee>>() {
         }.getType();
