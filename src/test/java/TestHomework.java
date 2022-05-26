@@ -15,13 +15,14 @@ public class TestHomework {
         // given:
         Employee employee = new Employee();
 
-        final var origin = new StringBuilder();
+        final var actual = new StringBuilder();
         final var expected = new StringBuilder();
-        final var origin1 = Main.fileName;
+        final var actual1 = Main.fileName;
+        final var expected1 = ".csv";
 
         // when:
         for (var string : Main.columnMapping) {
-            origin.append(string);
+            actual.append(string);
         }
 
         for (var field : employee.getClass().getDeclaredFields()) {
@@ -29,31 +30,46 @@ public class TestHomework {
         }
 
         // then:
-        assertThat(Main.columnMapping, not(emptyArray()));
-        assertThat(employee.getClass().getDeclaredFields(), not(emptyArray()));
-        assertThat(origin.toString(), equalTo(expected.toString()));
-        assertThat(origin1, notNullValue());
+        // Проверка соответствия значений массива наименованию полей класса
+        assertThat(actual.toString(), equalTo(expected.toString()));
+        // Проверка наличия наименования файла
+        assertThat(actual1, is(not(isEmptyOrNullString())));
+        assertThat(actual1, containsString(expected1));
 
         // выражение переписано в стиле Hamcrest
-//        Assertions.assertNotNull(origin);
-//        Assertions.assertNotNull(expected);
 //        Assertions.assertEquals(origin.toString(), expected.toString());
 //        Assertions.assertNotNull(origin1);
     }
 
     @Test
     @DisplayName("Тест на успешное считывание информации из CSV в объекты класса Employee")
-    public void success_Create_ListEmployee() {
+    public void success_Create_ListEmployee() throws NoSuchFieldException, IllegalAccessException {
         // given:
-        final String[] origin = Main.columnMapping;
-        final String fileName = Main.fileName;
+        final var arrayFields = Main.columnMapping;
+        final var fileName = Main.fileName;
+        var stringBuilder = new StringBuilder();
+        final String actual;
+        final String expected;
 
         // when:
         Main.createDataCsv(fileName);
-        List<Employee> employeeList = Main.parseCSV(origin, fileName);
+        List<Employee> employeeList = Main.parseCSV(arrayFields, fileName);
+        // Считываем инф. с файла и записываем в строку
+        readFile(fileName, stringBuilder);
+        expected = stringBuilder.toString().replaceAll("\"", "").replaceAll(",",  "");
+        // Считываем инф. о значениях полей класса и записываем в строку
+        stringBuilder = new StringBuilder();
+        for (Employee employee : employeeList) {
+            for (String field : arrayFields) {
+                stringBuilder.append(employee.getClass().getField(field).get(employee));
+            }
+        }
+        actual = stringBuilder.toString();
 
         // then:
         assertThat(employeeList, is(not(empty())));
+        // Проверка равенства содержимого файла fileName с полученными значениями полей объектов класса Employee
+        assertThat(expected, equalTo(actual));
 
         // выражение переписано в стиле Hamcrest
 //        Assertions.assertNotNull(employeeList);
@@ -99,6 +115,17 @@ public class TestHomework {
 
         // when:
         Main.createDataCsv(fileName);
+        readFile(fileName, stringBuilder);
+        origin = stringBuilder.toString().replaceAll("\"", "");
+
+        // then:
+        Assertions.assertTrue(testFile.exists());
+        Assertions.assertTrue(testFile.canRead());
+        assertThat(extend, equalToIgnoringWhiteSpace(origin));
+
+    }
+
+    private void readFile(String fileName, StringBuilder stringBuilder) {
         try (BufferedReader bufferedReader = new BufferedReader(new FileReader(fileName))){
             String s;
             while ((s = bufferedReader.readLine()) != null){
@@ -107,13 +134,6 @@ public class TestHomework {
         }  catch (IOException e) {
             e.printStackTrace();
         }
-        origin = stringBuilder.toString().replaceAll("\"", "");
-
-        // then:
-        Assertions.assertTrue(testFile.exists());
-        Assertions.assertTrue(testFile.canRead());
-        assertThat(extend, equalToIgnoringWhiteSpace(origin));
-
     }
 
     @Test
